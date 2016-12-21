@@ -1,0 +1,19 @@
+<?php
+/**
+ * @file
+ * Drupal hooks and functions for admin_denied.
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function admin_denied_cron() {
+  // Set the uid 1 username and password to random strings.
+  db_update('users')
+    ->fields(array(
+      'name' => user_password(16),
+      'pass' => user_password(16),
+    ))
+    ->condition('uid', 1)
+    ->execute();
+}
