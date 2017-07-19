@@ -19,11 +19,19 @@ function admin_denied_cron() {
   } while ((bool) db_select('users')->fields('users', array('uid'))->condition('uid', 0, '<>')->condition('name', db_like($username), 'LIKE')->range(0, 1)->execute()->fetchField());
 
   // Set the uid 1 username and password to random strings.
-  db_update('users')
+  $result = db_update('users')
     ->fields(array(
       'name' => $username,
       'pass' => user_password(16),
     ))
     ->condition('uid', 1)
     ->execute();
+
+  // Write an entry to the watchdog log.
+  if ($result) {
+    watchdog('admin_denied', 'Randomised the username and password for user 1', array(), WATCHDOG_NOTICE);
+  }
+  else {
+    watchdog('admin_denied', 'Failed to randomise the username and password for user 1', array(), WATCHDOG_ERROR);
+  }
 }

@@ -4,3 +4,5 @@ and as bonus, it prevents any attackers from brute-forcing the login details.
 
 In case of emergency, you should be able to login with uid 1 using a login url
 generated via `drush uli`.
+
+Do not install this module if you cannot use drush.
