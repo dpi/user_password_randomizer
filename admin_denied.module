@@ -14,7 +14,7 @@ function admin_denied_cron() {
    */
   do {
     $username = user_password(16);
-  } while ((bool) db_select('users', 'u')->fields('b', ['uid'])->condition('u.uid', 0, '<>')->condition('u.name', db_like($username), 'LIKE')->range(0, 1)->execute()->fetchField());
+  } while ((bool) db_select('users', 'u')->fields('u', ['uid'])->condition('u.uid', 0, '<>')->condition('u.name', db_like($username), 'LIKE')->range(0, 1)->execute()->fetchField());
 
   // Set the uid 1 username and password to random strings.
   $result = db_update('users')
