@@ -1,3 +1,0 @@
-name = Admin Denied
-description = Prevents password based logins by uid 1.
-core = 7.x
