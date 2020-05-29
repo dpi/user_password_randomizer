@@ -1,0 +1,5 @@
+admin_denied.settings:
+  title: 'Admin Denied settings'
+  parent: user.admin_index
+  description: 'Configure settings for Admin Denied.'
+  route_name: admin_denied.settings

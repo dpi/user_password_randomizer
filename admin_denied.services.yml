@@ -1,0 +1,8 @@
+services:
+  admin_denied.utility:
+    class: 'Drupal\admin_denied\AdminDeniedUtility'
+    arguments: ['@token', '@config.factory', '@entity_type.manager']
+
+  logger.channel.admin_denied:
+    parent: logger.channel_base
+    arguments: ['admin_denied']

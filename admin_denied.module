@@ -4,29 +4,46 @@
  * Drupal hooks and functions for admin_denied.
  */
 
+use Drupal\Core\Entity\EntityStorageException;
+use Drupal\user\Entity\User;
+
 /**
  * Implements hook_cron().
  */
 function admin_denied_cron() {
-  /*
-   * Generate a new random username that does not already exist. This loop
-   * will exit if a generated username is NOT found.
-   */
-  do {
-    $username = user_password(16);
-  } while ((bool) db_select('users_field_data', 'u')->fields('u', ['uid'])->condition('u.uid', 0, '<>')->condition('u.name', db_like($username), 'LIKE')->range(0, 1)->execute()->fetchField());
+  /** @var \Drupal\admin_denied\AdminDeniedUtilityInterface $utility */
+  $utility = \Drupal::service('admin_denied.utility');
+  /** @var \Psr\Log\LoggerInterface $logger */
+  $logger = \Drupal::service('logger.channel.admin_denied');
 
-  // Set the uid 1 username and password to random strings.
-  $result = db_update('users_field_data')
-    ->fields(['name' => $username, 'pass' => user_password(16)])
-    ->condition('uid', 1)
-    ->execute();
+  $userId = 1;
+  /** @var \Drupal\user\UserInterface $user */
+  $user = User::load($userId);
+  $loggerArgs = [
+    '@user' => 'user ' . $user->id(),
+  ];
 
-  // Write an entry to the watchdog log.
-  if ($result) {
-    \Drupal::logger('admin_denied')->notice('Randomised the username and password for user 1');
+  // Set password to random string.
+  $user->setPassword(\user_password(16));
+
+  // Dont bother if username is the same or randomisation is off:
+  $newUsername = $utility->generateUsername($user);
+  if ($user->getAccountName() !== $newUsername) {
+    $loggerArgs['@old_username'] = $user->getAccountName();
+    $loggerArgs['@new_username'] = $newUsername;
+    $user->setUsername($newUsername);
+    $logger->info('Randomised username and password for @user. Username changed from @old_username to @new_username', $loggerArgs);
   }
   else {
-    \Drupal::logger('admin_denied')->error('Failed to randomise the username and password for user 1');
+    $logger->info('Randomised password for @user', $loggerArgs);
+  }
+
+  try {
+    $user->save();
+  }
+  catch (EntityStorageException $e) {
+    $logger->error('Failed to randomise the username and password for @user: @exception_message', [
+      '@exception_message' => $e->getMessage(),
+    ]);
   }
 }

@@ -1,0 +1,10 @@
+admin_denied.settings:
+  type: config_object
+  label: 'Admin denied settings'
+  mapping:
+    randomize_username:
+      type: boolean
+      label: 'Whether to randomise username'
+    username_pattern:
+      type: string
+      label: 'Username pattern'

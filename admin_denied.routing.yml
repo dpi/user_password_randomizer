@@ -1,0 +1,7 @@
+admin_denied.settings:
+  path: '/admin/config/people/admin-denied'
+  defaults:
+    _form: '\Drupal\admin_denied\Form\AdminDeniedSettingsForm'
+    _title: 'Admin Denied settings'
+  requirements:
+    _permission: 'administer admin_denied'

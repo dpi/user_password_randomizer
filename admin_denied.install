@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function admin_denied_install() {
+  // @todo use hook_install() $is_syncing after D8.9.
+  if (\Drupal::service('config.installer')->isSyncing()) {
+    return;
+  }
+
+  // If token is installed, pre-install the random hash token, but only if
+  // it is still the empty string from install YAML.
+  if (\Drupal::moduleHandler()->moduleExists('token')) {
+    $config = \Drupal::configFactory()->getEditable('admin_denied.settings');
+    if (empty($config->get('username_pattern'))) {
+      $config
+        ->set('username_pattern', '[random:hash:sha1]')
+        ->save(TRUE);
+    }
+  }
+}
