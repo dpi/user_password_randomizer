@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\admin_denied\Form;
+namespace Drupal\user_password_randomizer\Form;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -10,9 +10,9 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Settings for Admin Denied.
+ * Settings for User Password Randomizer.
  */
-class AdminDeniedSettingsForm extends ConfigFormBase {
+class UserPasswordRandomizerSettingsForm extends ConfigFormBase {
 
   /**
    * The module handler.
@@ -22,7 +22,7 @@ class AdminDeniedSettingsForm extends ConfigFormBase {
   protected $moduleHandler;
 
   /**
-   * Constructs a new AdminDeniedSettingsForm.
+   * Constructs a new UserPasswordRandomizerSettingsForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The factory for configuration objects.
@@ -48,21 +48,21 @@ class AdminDeniedSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   protected function getEditableConfigNames() {
-    return ['admin_denied.settings'];
+    return ['user_password_randomizer.settings'];
   }
 
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'admin_denied_settings_form';
+    return 'user_password_randomizer_settings_form';
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    $config = $this->config('admin_denied.settings');
+    $config = $this->config('user_password_randomizer.settings');
 
     $form['randomize_username'] = [
       '#type' => 'checkbox',
@@ -101,7 +101,7 @@ class AdminDeniedSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $this->config('admin_denied.settings')
+    $this->config('user_password_randomizer.settings')
       ->set('username_pattern', $form_state->getValue('username_pattern'))
       ->set('randomize_username', (bool) $form_state->getValue('randomize_username'))
       ->save();

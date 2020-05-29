@@ -1,13 +1,13 @@
 <?php
 
-namespace Drupal\admin_denied;
+namespace Drupal\user_password_randomizer;
 
 use Drupal\user\UserInterface;
 
 /**
  * Interface for admin utility.
  */
-interface AdminDeniedUtilityInterface {
+interface UserPasswordRandomizerInterface {
 
   /**
    * Generates a username for a user.

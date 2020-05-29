@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\admin_denied;
+namespace Drupal\user_password_randomizer;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -8,9 +8,9 @@ use Drupal\Core\Utility\Token;
 use Drupal\user\UserInterface;
 
 /**
- * Admin denied utility.
+ * User Password Randomizer utility.
  */
-class AdminDeniedUtility implements AdminDeniedUtilityInterface {
+class UserPasswordRandomizer implements UserPasswordRandomizerInterface {
 
   /**
    * The token replacement instance.
@@ -34,7 +34,7 @@ class AdminDeniedUtility implements AdminDeniedUtilityInterface {
   protected $userStorage;
 
   /**
-   * AdminDeniedUtility constructor.
+   * UserPasswordRandomizer constructor.
    *
    * @param \Drupal\Core\Utility\Token $token
    *   The token replacement instance.
@@ -53,7 +53,7 @@ class AdminDeniedUtility implements AdminDeniedUtilityInterface {
    * {@inheritdoc}
    */
   public function generateUsername(UserInterface $user) {
-    $config = $this->configFactory->get('admin_denied.settings');
+    $config = $this->configFactory->get('user_password_randomizer.settings');
 
     if (!$config->get('randomize_username')) {
       return $user->getAccountName();
