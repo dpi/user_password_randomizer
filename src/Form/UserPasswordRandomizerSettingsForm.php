@@ -4,6 +4,7 @@ namespace Drupal\user_password_randomizer\Form;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -22,16 +23,26 @@ class UserPasswordRandomizerSettingsForm extends ConfigFormBase {
   protected $moduleHandler;
 
   /**
+   * The date formatter.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected $dateFormatter;
+
+  /**
    * Constructs a new UserPasswordRandomizerSettingsForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The factory for configuration objects.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The module handler.
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
+   *   The date formatter.
    */
-  public function __construct(ConfigFactoryInterface $configFactory, ModuleHandlerInterface $moduleHandler) {
-    $this->setConfigFactory($configFactory);
+  public function __construct(ConfigFactoryInterface $configFactory, ModuleHandlerInterface $moduleHandler, DateFormatterInterface $dateFormatter) {
+    parent::__construct($configFactory);
     $this->moduleHandler = $moduleHandler;
+    $this->dateFormatter = $dateFormatter;
   }
 
   /**
@@ -40,7 +51,8 @@ class UserPasswordRandomizerSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('date.formatter')
     );
   }
 
@@ -94,6 +106,37 @@ class UserPasswordRandomizerSettingsForm extends ConfigFormBase {
       ];
     }
 
+    $period = [
+      0,
+      900,
+      1800,
+      2700,
+      3600,
+      10800,
+      21600,
+      32400,
+      43200,
+      86400,
+      172800,
+      259200,
+      345600,
+      432000,
+      518400,
+      604800,
+      1209600,
+      1814400,
+      2419200,
+    ];
+    $period = array_map([$this->dateFormatter, 'formatInterval'], array_combine($period, $period));
+    $period[0] = '<' . $this->t('cron run') . '>';
+    $form['update_interval'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Update every'),
+      '#description' => $this->t('The interval between updates.'),
+      '#options' => $period,
+      '#default_value' => $config->get('update_interval'),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -104,6 +147,7 @@ class UserPasswordRandomizerSettingsForm extends ConfigFormBase {
     $this->config('user_password_randomizer.settings')
       ->set('username_pattern', $form_state->getValue('username_pattern'))
       ->set('randomize_username', (bool) $form_state->getValue('randomize_username'))
+      ->set('update_interval', (int) $form_state->getValue('update_interval'))
       ->save();
     parent::submitForm($form, $form_state);
   }
