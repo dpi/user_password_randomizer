@@ -52,7 +52,7 @@ class UserPasswordRandomizer implements UserPasswordRandomizerInterface {
   /**
    * {@inheritdoc}
    */
-  public function generateUsername(UserInterface $user) {
+  public function generateUsername(UserInterface $user): string {
     $config = $this->configFactory->get('user_password_randomizer.settings');
 
     if (!$config->get('randomize_username')) {
@@ -82,6 +82,15 @@ class UserPasswordRandomizer implements UserPasswordRandomizerInterface {
     } while ($countUsers($newUsername) > 0);
 
     return $newUsername;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function generatePassword(UserInterface $user): string {
+    // @todo Replace user_password() with password component.
+    // @see https://www.drupal.org/project/drupal/issues/3153085
+    return \user_password(16);
   }
 
 }

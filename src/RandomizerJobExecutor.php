@@ -52,7 +52,7 @@ class RandomizerJobExecutor {
   /**
    * The user entity storage.
    *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
+   * @var \Drupal\user\UserStorageInterface
    */
   protected $userStorage;
 
@@ -76,39 +76,46 @@ class RandomizerJobExecutor {
   }
 
   /**
-   * Execute the job.
+   * Implements hook_cron().
+   *
+   * Conditionally executes user metadata randomization.
+   *
+   * @see \user_password_randomizer_cron()
    */
-  public function execute() {
-    // @todo allow users to be configured.
-    $userId = 1;
-
+  public function cron(): void {
     $config = $this->configFactory->get('user_password_randomizer.settings');
     $updateInterval = $config->get('update_interval') ?: 0;
     $lastCheck = $this->state->get('user_password_randomizer.last_check') ?: 0;
     $requestTime = $this->time->getRequestTime();
-    if (($requestTime - $lastCheck) < $updateInterval) {
+    if (($requestTime - $lastCheck) > $updateInterval) {
       // Skipping as update interval has not yet elapsed.
-      return;
+      $this->execute();
     }
+  }
+
+  /**
+   * Executes randomisation of randomizes user metadata.
+   */
+  public function execute(): void {
+    // @todo allow users to be configured.
+    $userId = 1;
+
     /** @var \Drupal\user\UserInterface $user */
     $user = $this->userStorage->load($userId);
     $loggerArgs = [
       '@user' => 'user ' . $user->id(),
     ];
 
-    // Set password to random string.
-    // @todo Replace user_password() with password component.
-    // @see https://www.drupal.org/project/drupal/issues/3153085
-    $user->setPassword(\user_password(16));
+    $user->setPassword($this->randomizer->generatePassword($user));
 
     // Dont bother if username is the same or randomisation is off:
     $newUsername = $this->randomizer->generateUsername($user);
-    if ($oldUsername = $user->getAccountName() !== $newUsername) {
+    $oldUsername = $user->getAccountName();
+    if ($oldUsername !== $newUsername) {
       $loggerArgs['@old_username'] = $oldUsername;
       $loggerArgs['@new_username'] = $newUsername;
       $user->setUsername($newUsername);
-      $this->logger->info('Randomised username and password for @user. Username changed from @old_username to @new_username',
-        $loggerArgs);
+      $this->logger->info('Randomised username and password for @user. Username changed from @old_username to @new_username', $loggerArgs);
     }
     else {
       $this->logger->info('Randomised password for @user', $loggerArgs);
@@ -118,11 +125,12 @@ class RandomizerJobExecutor {
       $user->save();
     }
     catch (EntityStorageException $e) {
-      $this->logger->error('Failed to randomise the username and password for @user: @exception_message',
-        [
-          '@exception_message' => $e->getMessage(),
-        ]);
+      $this->logger->error('Failed to randomise the username and password for @user: @exception_message', $loggerArgs + [
+        '@exception_message' => $e->getMessage(),
+      ]);
     }
+
+    $requestTime = $this->time->getRequestTime();
     $this->state->set('user_password_randomizer.last_check', $requestTime);
   }
 

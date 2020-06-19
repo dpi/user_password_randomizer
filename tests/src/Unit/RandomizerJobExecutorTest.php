@@ -33,9 +33,10 @@ namespace Drupal\Tests\user_password_randomizer\Unit {
       $time = $this->prophesize(TimeInterface::class);
       // 19/06/2020 @ 12:00am (UTC)
       $currentTime = 1592524800;
-      $newUsername = "abcdef123456";
+      $newUsername = 'abcdef123456';
+      $newPassword = 'abcd1234';
 
-      $time->getRequestTime()->shouldBeCalledOnce()->willReturn($currentTime);
+      $time->getRequestTime()->shouldBeCalledTimes(2)->willReturn($currentTime);
 
       $state = $this->prophesize(StateInterface::class);
       $state->get('user_password_randomizer.last_check')
@@ -45,10 +46,10 @@ namespace Drupal\Tests\user_password_randomizer\Unit {
         ->shouldBeCalledOnce();
 
       $user = $this->prophesize(UserInterface::class);
-      $user->getAccountName()->shouldBeCalledOnce()->willReturn("foobar");
+      $user->getAccountName()->shouldBeCalledOnce()->willReturn('foobar');
       $user->id()->shouldBeCalledOnce()->willReturn(1);
       $user->setUsername($newUsername)->shouldBeCalledOnce();
-      $user->setPassword("abcd1234")->shouldBeCalledOnce();
+      $user->setPassword($newPassword)->shouldBeCalledOnce();
       $user->save()->shouldBeCalledOnce();
 
       $userStorage = $this->prophesize(EntityStorageInterface::class);
@@ -59,6 +60,9 @@ namespace Drupal\Tests\user_password_randomizer\Unit {
       $randomizer->generateUsername($user)
         ->shouldBeCalledOnce()
         ->willReturn($newUsername);
+      $randomizer->generatePassword($user)
+        ->shouldBeCalledOnce()
+        ->willReturn($newPassword);
 
       $entityTypeManager = $this->prophesize(EntityTypeManagerInterface::class);
       $entityTypeManager->getStorage('user')
@@ -74,22 +78,7 @@ namespace Drupal\Tests\user_password_randomizer\Unit {
         $randomizer->reveal(),
         $entityTypeManager->reveal()
       );
-      $executor->execute();
-
-    }
-
-  }
-}
-
-namespace {
-
-  if (!function_exists('user_password')) {
-
-    /**
-     * Mocks the user_password() global function.
-     */
-    function user_password($len) {
-      return "abcd1234";
+      $executor->cron();
     }
 
   }
